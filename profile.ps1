@@ -136,3 +136,15 @@ Invoke-Expression (&starship init powershell)
 # $env:RUSTUP_DIST_SERVER = 'http://mirrors.rustcc.cn'
 # $env:RUSTUP_DIST_SERVER = 'https://mirrors.tuna.tsinghua.edu.cn/rustup'
 # $env:RUSTUP_UPDATE_ROOT = 'http://mirrors.rustcc.cn/rustup'
+
+$MaximumHistoryCount = 200
+$historyPath = Join-Path (split-path $profile) history.clixml
+
+Register-EngineEvent -SourceIdentifier powershell.exiting -SupportEvent -Action {
+    Get-History | Export-Clixml $historyPath
+}.GetNewClosure()
+
+if ((Test-Path $historyPath)) {
+    Import-Clixml $historyPath | Where-Object { $count++; $true } | Add-History
+    Write-Host -Fore Green "`nLoaded $count history item(s).`n"
+}
